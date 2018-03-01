@@ -1,0 +1,147 @@
+go atlas simflags="-P 4"
+
+# set the properties of the oxide
+set die=SiO2
+set eox=3.9
+set dox=0.003
+# fitting the effective masses
+set emass=0.12
+set hmass=0.17
+# set the doping levels of the source, drain, and body
+set NAsource=1e20
+set NDdrain=5e18
+set NDbody=1e17
+# set the values of the drain and source lengths
+set Ld=0.100
+set Ls=0.100
+# set the length of the intrinsic region
+set Lch=0.050
+# set the length of the silicon thickness
+set dsi=0.010
+# some extra lengths
+set d=$Lch/2
+set dtotal=$dox+$dsi+$dox
+set Ltotal=$Ld+$Ls+$Lch
+
+mesh 
+#space.mult=1.0 ^diag.flip
+x.mesh loc=0 spac=0.005
+x.mesh loc=$Ls spac=0.0005
+x.mesh loc=$Ls+$Lch/2 spac=0.001
+x.mesh loc=$Ls+$Lch spac=0.0005
+x.mesh loc=$Ltotal spac=0.005
+
+y.mesh loc=0 spac=0.00025
+y.mesh loc=$dox  spac=0.0005
+y.mesh loc=$dox+$dsi/2 spac=0.0005
+y.mesh loc=$dox+$dsi  spac=0.0005
+y.mesh loc=$dtotal spac=0.00025
+
+region number=1 x.min=0 x.max=$Ltotal y.min=$dox y.max=$dox+$dsi  material=silicon
+region number=2 x.min=0 x.max=$Ltotal y.min=0 y.max=$dox  material=$die
+region number=3 x.min=0 x.max=$Ltotal y.min=$dox+$dsi  y.max=$dtotal  material=$die
+
+electrode x.min=0 x.max=0 y.min=$dox y.max=$dox+$dsi name = source
+electrode x.min=$Ls x.max=$Ls+$Lch-0.03 y.min=0 y.max=0 name = gate
+electrode x.min=$Ls x.max=$Ls+$Lch-0.03  y.min=$dtotal y.max=$dtotal name = gate
+electrode x.min=$Ltotal x.max=$Ltotal y.min=$dox y.max=$dox+$dsi name = drain
+
+# the doping profile is:
+doping reg=1 concentration=$NDbody n.type uniform
+doping x.min=0 x.max=$Ls y.min=$dox y.max=$dox+$dsi concentration=$NAsource p.type uniform
+doping x.min=$Ls+$Lch  x.max=$Ltotal y.min=$dox y.max=$dox+$dsi concentration=$NDdrain n.type uniform
+
+material material=silicon me.tunnel=$emass mh.tunnel=$hmass
+material material=$die permittivity=$eox
+
+
+### Saving Structure
+save outf=nTFET.str master.out
+
+go atlas
+.begin
+#
+#     NTFET inverters - DC point simulation
+#     Circuit description
+#
+vin 1 0 0 
+anTFET 2=drain 1=gate 0=source infile=nTFET.str width=15.
+r1 3 2 100mg
+vcc 3 0 1
+c1 2 0 3ff
+
+#
+#     End of circuit description
+#
+.numeric vchange=1.
+.options print m2ln noshift
+#
+.save outfile=nmos
+.end
+#
+#  Define physical models for ATLAS device   
+#
+QTX.MESH LOCATION=$Ls-0.020  SPACING=0.0005
+QTX.MESH LOCATION=$Ls+0.020  SPACING=0.0005
+QTX.MESH LOCATION=$Ls+$Lch-0.030  SPACING=0.0005
+QTX.MESH LOCATION=$Ls+$Lch+0.030  SPACING=0.0005
+
+QTY.MESH LOCATION=$dox SPACING=0.0001
+QTY.MESH LOCATION=$dox+$dsi/2 SPACING=0.0005
+QTY.MESH LOCATION=$dox+$dsi  SPACING=0.0001
+
+contact device=anTFET name=gate workfunction=4.5
+
+#select models
+MODELS device=anTFET temperature=300 fermi bgn srh consrh auger conmob ccsmob cvt fldmob bbt.nonlocal qtunn.dir=1
+material material=silicon me.tunnel=$emass mh.tunnel=$hmass
+material material=$die permittivity=$eox
+
+go atlas
+.begin
+#
+#     NTFET inverters - transient simulation
+#     
+#     Circuit description
+#
+vin 1 0 0. PULSE 0 1 0 25ps 25ps 1000ps 10 
+anTFET 2=drain 1=gate 0=source infile=nTFET.str width=15.
+r1 3 2 100mg
+vcc 3 0 1
+c1 2 0 3ff
+#
+#     End of circuit description
+#
+#
+.numeric lte=0.05 dtmin=1e-15
+.options print noshift
+#
+.load infile=nmos
+.log outfile=mos2ex01_t
+#
+.tran 0.0001ps 10ns
+#
+.end
+#
+#    ATLAS device models and parameters
+#
+QTX.MESH LOCATION=$Ls-0.020  SPACING=0.0005
+QTX.MESH LOCATION=$Ls+0.020  SPACING=0.0005
+QTX.MESH LOCATION=$Ls+$Lch-0.030  SPACING=0.0005
+QTX.MESH LOCATION=$Ls+$Lch+0.030  SPACING=0.0005
+
+QTY.MESH LOCATION=$dox SPACING=0.0001
+QTY.MESH LOCATION=$dox+$dsi/2 SPACING=0.0005
+QTY.MESH LOCATION=$dox+$dsi  SPACING=0.0001
+
+contact device=anTFET name=gate workfunction=4.5
+
+#select models
+MODELS device=anTFET temperature=300 fermi bgn srh consrh auger conmob ccsmob cvt fldmob bbt.nonlocal qtunn.dir=1
+material material=silicon me.tunnel=$emass mh.tunnel=$hmass
+material material=$die permittivity=$eox
+
+go atlas
+tonyplot  mos2ex01_t_tr.log 
+quit
+
