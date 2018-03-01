@@ -1,0 +1,219 @@
+go atlas simflags="-P 4" 
+# to change LDrain : distance between two gates and its also width of Drain region.
+set ldrain=0.04
+# set the properties of the oxide 
+set elecD=0.005 
+set die=SiO2 
+set eox=3.9 
+set tox=0.002
+# fitting the effective masses: you can change these values to calibrate Tgate data #try not to incr on 0.7 
+set emass=0.2
+set hmass=0.3
+# set the doping levels of the source, drain, and body 
+set Ns=1e20
+set Np=1e19
+set Nd=1e19
+set Nsub=1e17
+# set the values of the Drain lengths.
+set hd=0.020  
+set hdNew=0.010 
+# set the values of the Source, Spacer and Pocket Length.
+set hs=0.030
+set lspacer=0.030
+set tp=0.005
+# set the values of the Gate Length.
+set lov=0.007
+set lg=0.006
+set hg1=0.038   
+set hg2=0.030
+# set some extra lengths &substrate.
+set lsn=0.037
+set hsub=0.026
+set lsub=($ldrain/2)+0.045
+set totallg=$lg+$tox+$tox
+#set totalH=$Hs+$Tp+$Hd+$Hsub
+set ld=$lsub
+set lsource=0
+set add=$ld-($lsn-$tox+$totallg)
+#
+mesh space.mult=1.0
+x.mesh loc=0.00 spac=0.002
+x.mesh loc=0.015 h1=0.0005
+x.mesh loc=0.040 h1=0.001
+x.mesh loc=$ld-0.001 spac=0.001
+x.mesh loc=$ld+$add+$totallg-0.005 h1=0.0005
+x.mesh loc=$ld+$add+$totallg+0.020 h1=0.002
+x.mesh loc=2*$ld spac=0.002
+
+y.mesh loc=-$tox spac=0.001
+#y.mesh loc=$hs spac=0.001
+#y.mesh loc=-$tox spac=0.001
+#y.mesh loc=$hs+($hsub/2) spac=0.002
+y.mesh loc=0.046 spac=0.001
+
+region number=1 x.min=0 x.max=2*$ld y.min=-$tox y.max=0.056 material=Air
+#
+region number=2 x.min=0 x.max=$lsn y.min=$hs y.max=$hs+$hsub material=Silicon
+#
+region number=3 x.min=$lsn-$tox x.max=$lsn-$tox+$totallg y.min=$hg1+$tox y.max=$hs+$hsub material=Silicon
+#
+#region number=4 x.min=0 x.max=$ld y.min=$hs+$hsub y.max=$hs+$hsub+$hd material=Silicon
+#
+region number=4 x.min=$lsn-$tox+$totallg  x.max=$ld y.min=0 y.max=$hdNew material=Silicon
+#
+region number=5 x.min=$lsn-$tox+$totallg  x.max=$ld y.min=$hdNew y.max=$hs+$hsub material=Silicon
+#
+region number=6 x.min=$lsn-$tox-$tp x.max=$lsn-$tox y.min=0 y.max=$hs material=SiGe 
+#
+region number=7 x.min=0 x.max=$lsn+$tp  y.min=$hs y.max=$hs+$tp material=SiGe
+#
+region number=8 x.min=0.0 x.max=$lsn y.min=-$tox y.max=0 material=$die
+#
+region number=9 x.min=$lsn-$tox x.max=$lsn y.min=0 y.max=$hg1 material=$die
+#
+region number=10 x.min=$lsn-$tox x.max=$lsn-$tox+$totallg y.min=$hg1 y.max=$hg1+$tox material=$die
+#
+region number=11 x.min=$lsn+$lg x.max=$lsn+$lg+$tox y.min=0 y.max=$hg1 material=$die
+#
+region number=12 x.min=$lsn+$lg x.max=$ld-$elecD y.min=-$tox y.max=0 material=$die
+#
+region number=13 x.min=0 x.max=$lsn-$tp-$tox y.min=0 y.max=$hs material=Silicon
+#
+region number=14 x.min=$lsn x.max=$lsn+$lg y.min=-$tox y.max=$hg1 material=POLYSILICON
+#
+###second regions###
+region number=15 x.min=$ld  x.max=$ld+$add y.min=$hdNew y.max=$hs+$hsub material=Silicon
+region number=16 x.min=$ld  x.max=$ld+$add y.min=0 y.max=$hdNew material=Silicon
+region number=17 x.min=$ld+$elecD x.max=$ld+$add+$tox y.min=-$tox y.max=0 material=$die
+region number=18 x.min=$ld+$add x.max=$ld+$add+$tox y.min=0 y.max=$hg1 material=$die
+region number=19 x.min=$ld+$add+$tox x.max=$ld+$add+$tox+$lg y.min=-$tox y.max=$hg1 material=POLYSILICON
+region number=20 x.min=$ld+$add x.max=$ld+$add+$totallg y.min=$hg1 y.max=$hg1+$tox material=$die
+region number=21 x.min=$ld+$add+$totallg-$tox x.max=$ld+$add+$totallg y.min=0 y.max=$hg1 material=$die
+region number=22 x.min=$ld+$add+$totallg-$tox x.max=2*$ld y.min=-$tox y.max=0 material=$die
+region number=23 x.min=$ld+$add x.max=$ld+$add+$totallg y.min=$hg1+$tox y.max=$hs+$hsub material=Silicon
+region number=24 x.min=$ld+$add+$totallg x.max=2*$ld y.min=$hs y.max=$hs+$hsub material=Silicon
+region number=25 x.min=$ld+$add+$totallg x.max=2*$ld y.min=0 y.max=$hs material=Silicon
+region number=26 x.min=$ld+$add+$totallg x.max=2*$ld y.min=$hs y.max=$hs+$tp material=SiGe
+region number=27 x.min=$ld+$add+$totallg x.max=$ld+$add+$totallg+$tp y.min=0 y.max=$hs material=SiGe 
+
+###            ###
+electrode x.min=0 x.max=0 y.min=0 y.max=0.010 name = source
+electrode x.min=$ld-$elecD  x.max=$ld+$elecD y.min=0 y.max=0.0  name = drain
+electrode  x.min=$lsn-$tox-$tp x.max=$lsn+$lg y.min=-$tox y.max=-$tox material=polysilicon name = gate
+electrode x.min=$lsn x.max=$lsn+$lg y.min=-$tox y.max=$hg1 name = gate
+###second electrode###
+electrode x.min=2*$ld x.max=2*$ld y.min=0 y.max=0.010 name = source
+electrode x.min=$ld+$add+$tox+$lg x.max=$ld+$add+$tox+$lg y.min=-$tox+0.000001 y.max=$hg1-0.000001 name = gate
+electrode x.min=$ld+$add+$tox x.max=$ld+$add+$tox+$lg y.min=-$tox y.max=$hg1 name = gate
+#
+Doping region=6  concentration=$Np   n.type uniform
+Doping region=7  concentration=$Np   n.type uniform
+Doping region=13  concentration=$Ns   p.type uniform
+Doping region=4  concentration=$Np   n.type uniform
+Doping region=2  concentration=$Nsub p.type uniform
+Doping region=3  concentration=$Nsub p.type uniform
+Doping region=5  concentration=$Nsub p.type uniform
+###second doping###
+Doping region=16  concentration=$Nd   n.type uniform
+Doping region=15  concentration=$Nsub p.type uniform
+Doping region=23  concentration=$Nsub p.type uniform
+Doping region=24  concentration=$Nsub p.type uniform
+Doping region=25  concentration=$Ns   p.type uniform
+Doping region=26  concentration=$Np   n.type uniform
+Doping region=27  concentration=$Np   n.type uniform
+#Doping region=29  concentration=$Np   n.type uniform
+#Doping region=30  concentration=$Np   n.type uniform
+#Doping region=28  concentration=$Nd    n.type uniform
+###     ###
+contact name=gate    N.POLYSILICON
+#
+material material=silicon me.tunnel=$emass mh.tunnel=$hmass
+material silicon  taup0=2e-6 taun0=5e-6
+material material=$die permittivity=$eox 
+
+### Saving Structure 
+save outf= anTFET_2Lgate_40nm.str master.out 
+ 
+go atlas simflags="-P 4"
+.begin 
+# 
+#     anTFET inverters - DC point simulation 
+#     Circuit description 
+# 
+vin 1 0 0  
+anTFET 2=drain 1=gate 0=source infile= anTFET_2Lgate_40nm.str 
+r1 3 2 100mg 
+vcc 3 0 1  
+# 
+#     End of circuit description 
+# 
+.numeric vchange=1. 
+.options print m2ln noshift 
+.NODESET  V(1)=0.5 V(2)=1 
+
+# 
+.save outfile=anTFET 
+.end 
+#
+#  Contacts
+contact name=gate    N.POLYSILICON
+ 
+
+#  Define physical models for ATLAS device    
+QTREGION NUMBER=1  PTS.TUNNEL=150 PTS.NORMAL=200 X1=0.022 Y1=0  X2=0.022 Y2=0.034999 X3=0.034999 Y3=0.034999 X4=0.03499 Y4=0
+QTREGION NUMBER=2  PTS.TUNNEL=150 PTS.NORMAL=200 X1=0.022 Y1=30.0001  X2=0.03499 Y2=30.0001 X3=0.034999 Y3=0.034999  X4=0.022 Y4=0.034999 
+#QTREGION NUMBER=2  PTS.TUNNEL=100 PTS.NORMAL=100 X1=0.034999 Y1=0.02 X2=0.022 Y2=0.02 X3=0.022 Y3=0.03499 X4=0.034999 Y4=0.03499   
+QTREGION NUMBER=3  PTS.TUNNEL=150 PTS.NORMAL=200 X1=$ld+$add+$totallg+0.0001 Y1=0  X2=$ld+$add+$totallg+0.0001 Y2=0.0349999 X3=$ld+$add+$totallg+0.013 Y3=0.0349999 X4=$ld+$add+$totallg+0.013 Y4=0
+QTREGION NUMBER=4  PTS.TUNNEL=150 PTS.NORMAL=200 X1=$ld+$add+$totallg+0.0001 Y1=30.0001 X2=$ld+$add+$totallg+0.013 Y2=30.0001 X3=$ld+$add+$totallg+0.013 Y3=0.034999  X4=$ld+$add+$totallg+0.0001 Y4=0.034999  
+
+#select models 
+material device=anTFET material material=silicon me.tunnel=$emass mh.tunnel=$hmass
+material device=anTFET material material=$die permittivity=$eox 
+material device=anTFET material silicon  taup0=2e-6 taun0=5e-6
+
+MODELS device=anTFET  fermi bgn srh consrh bbt.nonlocal CVT 
+#
+go atlas simflags="-P 4"
+.begin 
+# 
+#     anTFET inverters - transient simulation 
+#      
+#     Circuit description 
+# 
+vin 1 0 0 PULSE 0 1 0 25ps 25ps 150ns 300ns  
+anTFET 2=drain 1=gate 0=source infile= anTFET_2Lgate_40nm.str
+r1 3 2 100mg 
+vcc 3 0 1 
+# 
+#     End of circuit description 
+# 
+# 
+.numeric lte=0.05 dtmin=1e-15 
+.options print noshift 
+# 
+.load infile=anTFET 
+.log outfile=anTFET_t 
+# 
+.tran 0.1ps 450ns 
+# 
+.end 
+# 
+#  Contacts
+contact name=gate    N.POLYSILICON 
+#  Define physical models for ATLAS device    
+QTREGION NUMBER=1  PTS.TUNNEL=150 PTS.NORMAL=200 X1=0.022 Y1=0  X2=0.022 Y2=0.034999 X3=0.034999 Y3=0.034999 X4=0.03499 Y4=0
+QTREGION NUMBER=2  PTS.TUNNEL=150 PTS.NORMAL=200 X1=0.022 Y1=30.0001  X2=0.03499 Y2=30.0001 X3=0.034999 Y3=0.034999  X4=0.022 Y4=0.034999 
+#QTREGION NUMBER=2  PTS.TUNNEL=100 PTS.NORMAL=100 X1=0.034999 Y1=0.02 X2=0.022 Y2=0.02 X3=0.022 Y3=0.03499 X4=0.034999 Y4=0.03499   
+QTREGION NUMBER=3  PTS.TUNNEL=150 PTS.NORMAL=200 X1=$ld+$add+$totallg+0.0001 Y1=0  X2=$ld+$add+$totallg+0.0001 Y2=0.0349999 X3=$ld+$add+$totallg+0.013 Y3=0.0349999 X4=$ld+$add+$totallg+0.013 Y4=0
+QTREGION NUMBER=4  PTS.TUNNEL=150 PTS.NORMAL=200 X1=$ld+$add+$totallg+0.0001 Y1=30.0001 X2=$ld+$add+$totallg+0.013 Y2=30.0001 X3=$ld+$add+$totallg+0.013 Y3=0.034999  X4=$ld+$add+$totallg+0.0001 Y4=0.034999  
+
+#select models 
+material device=anTFET material material=silicon me.tunnel=$emass mh.tunnel=$hmass
+material device=anTFET material material=$die permittivity=$eox 
+material device=anTFET material silicon  taup0=2e-6 taun0=5e-6
+
+MODELS device=anTFET  fermi bgn srh consrh bbt.nonlocal CVT 
+#
+go atlas simflags="-P 4" 
+tonyplot  anTFET_t_tr.log  
+quit
